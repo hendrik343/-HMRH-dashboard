@@ -12,7 +12,7 @@ with st.sidebar:
     st.title("🩺 Navegação")
     secao = st.radio("Ir para:", ["Dashboard Principal", "Comparação de Métricas", "Exportar Dados"])
     st.markdown("---")
-    st.markdown("**Versão:** 1.0")
+    st.markdown("**Versão:** 1.1 (layout moderno, KPIs e alertas automáticos)")
     st.markdown("**Autor:** Hendrik da Silva")
 
 # --- HEADER PERSONALIZADO ---
