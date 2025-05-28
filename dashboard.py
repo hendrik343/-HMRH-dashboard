@@ -2,35 +2,53 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Liga ao ficheiro Excel verdadeiro
-ficheiro_excel = "Dashboard_HSE_Completo.xlsx"
-df = pd.read_excel(ficheiro_excel)
-
-# Limpa dados vazios e ajusta colunas
-df = df.dropna(subset=["Hospital"])
-colunas_num = df.select_dtypes(include='number').columns.tolist()
-colunas_num = [col for col in colunas_num if col != "Ano"]  # Se existir uma coluna Ano
+# Título e configuração
+st.set_page_config(layout="wide", page_title="Dashboard HSE - Comparação")
 
 st.title("Dashboard HSE - Comparação de Hospitais")
-st.markdown("### Comparação direta de todos os indicadores")
+st.markdown("Todos os gráficos comparam os valores totais de cada métrica para cada hospital.")
 
-# Mostra nomes das colunas
-st.markdown("#### Dados disponíveis:")
-st.write(df.head())
+# Lê o ficheiro Excel
+ficheiro_excel = "Dashboard_HSE_Completo.xlsx"
+try:
+    df = pd.read_excel(ficheiro_excel)
+except Exception as e:
+    st.error(f"Erro ao carregar o ficheiro Excel: {e}")
+    st.stop()
 
-# Mostra gráficos para cada coluna numérica
+# Garante que a coluna Hospital existe
+if "Hospital" not in df.columns:
+    st.error("O ficheiro não tem coluna chamada 'Hospital'. Corrija antes de continuar.")
+    st.stop()
+
+# Só mantém colunas numéricas
+colunas_num = df.select_dtypes(include="number").columns.tolist()
+if not colunas_num:
+    st.error("Não foram encontradas colunas numéricas para comparar.")
+    st.stop()
+
+# Mostra os dados carregados
+with st.expander("Ver tabela de dados"):
+    st.dataframe(df)
+
+# Um gráfico de barras para cada coluna numérica
 for coluna in colunas_num:
+    dados = df.groupby("Hospital")[coluna].sum().reset_index()
     fig = px.bar(
-        df,
+        dados,
         x="Hospital",
         y=coluna,
         color="Hospital",
         barmode="group",
-        title=f"{coluna} por Hospital",
         text=coluna,
+        title=f"{coluna} por Hospital"
     )
-    fig.update_layout(showlegend=False)
+    fig.update_layout(
+        plot_bgcolor="#232946",
+        paper_bgcolor="#232946",
+        font_color="#fff",
+        title_x=0.5
+    )
     st.plotly_chart(fig, use_container_width=True)
 
-st.markdown("---")
-st.caption("Código pronto para uso • Melhorar design depois")ß
+st.success("Dashboard pronto! Todos os indicadores comparados entre hospitais.")
