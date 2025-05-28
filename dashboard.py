@@ -1,12 +1,22 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from PIL import Image
 
-# Título e configuração
-st.set_page_config(layout="wide", page_title="Dashboard HSE - Comparação")
+with st.sidebar:
+    st.title("🩺 Navegação")
+    st.markdown("- Dashboard Principal")
+    st.markdown("- Comparação de Métricas")
+    st.markdown("- Exportar Dados")
+    st.markdown("---")
+    st.markdown("Versão 1.0")
 
-st.title("Dashboard HSE - Comparação de Hospitais")
-st.markdown("Todos os gráficos comparam os valores totais de cada métrica para cada hospital.")
+# Header personalizado com logo
+col1, col2 = st.columns([0.15, 0.85])
+logo = Image.open("grafico_pie_acidentes.png")  # Substituir pelo logo da empresa
+col1.image(logo, width=80)
+col2.markdown("## <span style='color:#e94560;'>Dashboard HSE</span> - Comparação de Hospitais", unsafe_allow_html=True)
+st.markdown("---")
 
 # Lê o ficheiro Excel
 ficheiro_excel = "Dashboard_HSE_Completo.xlsx"
@@ -27,6 +37,11 @@ if not colunas_num:
     st.error("Não foram encontradas colunas numéricas para comparar.")
     st.stop()
 
+hospitais = df["Hospital"].unique().tolist()
+hospitais_selecionados = st.multiselect("Seleciona os hospitais:", hospitais, default=hospitais)
+
+df = df[df["Hospital"].isin(hospitais_selecionados)]
+
 # Mostra os dados carregados
 with st.expander("Ver tabela de dados"):
     st.dataframe(df)
@@ -34,21 +49,44 @@ with st.expander("Ver tabela de dados"):
 # Um gráfico de barras para cada coluna numérica
 for coluna in colunas_num:
     dados = df.groupby("Hospital")[coluna].sum().reset_index()
-    fig = px.bar(
+    is_horizontal = coluna in ["RSU (kg)", "Energia (kWh)", "Água (m³)", "Combustível (L)"]
+    chart_type = px.bar if not is_horizontal else px.bar
+    orientation = "v" if not is_horizontal else "h"
+    eixo_x = "Hospital" if not is_horizontal else coluna
+    eixo_y = coluna if not is_horizontal else "Hospital"
+
+    fig = chart_type(
         dados,
-        x="Hospital",
-        y=coluna,
+        x=eixo_x,
+        y=eixo_y,
+        orientation=orientation,
         color="Hospital",
-        barmode="group",
         text=coluna,
         title=f"{coluna} por Hospital"
     )
     fig.update_layout(
         plot_bgcolor="#232946",
         paper_bgcolor="#232946",
-        font_color="#fff",
-        title_x=0.5
+        font_color="#ffffff",
+        title={
+            'text': f"{coluna} por Hospital",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': dict(size=22, color='#e94560')
+        },
+        margin=dict(t=30, b=20, l=20, r=20)
     )
     st.plotly_chart(fig, use_container_width=True)
 
 st.success("Dashboard pronto! Todos os indicadores comparados entre hospitais.")
+
+st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
