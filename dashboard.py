@@ -1,42 +1,36 @@
 import streamlit as st
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
 
-df = pd.read_excel("Dashboard_HSE_Completo.xlsx", sheet_name="Registo Diário")
+# Liga ao ficheiro Excel verdadeiro
+ficheiro_excel = "Dashboard_HSE_Completo.xlsx"
+df = pd.read_excel(ficheiro_excel)
 
-# Mostra nomes das colunas para conferires
-st.write("Colunas do Excel:", df.columns)
+# Limpa dados vazios e ajusta colunas
+df = df.dropna(subset=["Hospital"])
+colunas_num = df.select_dtypes(include='number').columns.tolist()
+colunas_num = [col for col in colunas_num if col != "Ano"]  # Se existir uma coluna Ano
 
-# Dashboard
-st.title("Hospital Dashboard")
-st.subheader("Dados reais do Excel")
+st.title("Dashboard HSE - Comparação de Hospitais")
+st.markdown("### Comparação direta de todos os indicadores")
 
-# Métricas principais
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total de Hospitais", df["Hospital"].nunique())
-col2.metric("Total de Acidentes", int(df["Nº Acidentes"].sum()))
-col3.metric("Média Check-List (%)", f"{df['Check-List (%)'].mean():.1f}")
-col4.metric("Total de Formações", int(df["Total Formações"].sum()))
+# Mostra nomes das colunas
+st.markdown("#### Dados disponíveis:")
+st.write(df.head())
+
+# Mostra gráficos para cada coluna numérica
+for coluna in colunas_num:
+    fig = px.bar(
+        df,
+        x="Hospital",
+        y=coluna,
+        color="Hospital",
+        barmode="group",
+        title=f"{coluna} por Hospital",
+        text=coluna,
+    )
+    fig.update_layout(showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("---")
-
-# Exemplo de gráfico: acidentes por hospital
-fig = px.bar(
-    df.groupby("Hospital")["Nº Acidentes"].sum().reset_index(),
-    x="Hospital",
-    y="Nº Acidentes",
-    color="Hospital",
-    title="Acidentes por Hospital"
-)
-st.plotly_chart(fig, use_container_width=True)
-
-# Outro gráfico: evolução do Check-List (%) mês a mês
-fig2 = px.line(
-    df,
-    x="Mês",
-    y="Check-List (%)",
-    color="Hospital",
-    markers=True,
-    title="Evolução do Check-List (%) por Hospital"
-)
-st.plotly_chart(fig2, use_container_width=True)
+st.caption("Código pronto para uso • Melhorar design depois")ß
