@@ -1,0 +1,33 @@
+.DS_St# Mac OS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+*.py[cod]
+__pycache__/
+*.so
+.Python
+env/
+venv/
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+*.xlsx
+*.png
+*.log
+*.sqliteore
+*.pyc
+__pycache__/
+.env
+.streamlit/secrets.toml
+venv/
