@@ -12,14 +12,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Fixed Excel generation function
+# Fixed Excel generation function with error handling
 def gerar_excel(df):
     """Generate Excel file from dataframe"""
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='HSE_Data', index=False)
-    output.seek(0)
-    return output.getvalue()
+    try:
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='HSE_Data', index=False)
+            # Remove writer.save() as it's handled by context manager
+        output.seek(0)
+        return output.getvalue()
+    except Exception as e:
+        st.error(f"Error generating Excel: {str(e)}")
+        return None
 
 # Demo data generation
 @st.cache_data
@@ -43,15 +48,16 @@ def gerar_dados_demo():
 # Generate demo data
 df = gerar_dados_demo()
 
-# Add download button
+# Add download button with improved error handling
 if st.sidebar.button("📥 Download Excel"):
     excel_bytes = gerar_excel(df)
-    st.sidebar.download_button(
-        label="📥 Download Report",
-        data=excel_bytes,
-        file_name=f"hse_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    if excel_bytes is not None:
+        st.sidebar.download_button(
+            label="📥 Download Report",
+            data=excel_bytes,
+            file_name=f"hse_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 # Display data
 st.title("🏥 Dashboard HSE - HMRH")
