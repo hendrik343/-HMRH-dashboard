@@ -1,8 +1,16 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from io import BytesIO
 from datetime import datetime
+from io import BytesIO
+
+# Page config
+st.set_page_config(
+    page_title="Dashboard HSE - HMRH",
+    page_icon="🏥",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # Fixed Excel generation function
 def gerar_excel(df):
@@ -32,112 +40,19 @@ def gerar_dados_demo():
             })
     return pd.DataFrame(dados)
 
-# CONFIGURAÇÕES INICIAIS
-st.set_page_config(
-    page_title="Dashboard HSE - HMRH",
-    page_icon="🏥",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Generate demo data
+df = gerar_dados_demo()
 
-# Add our futuristic CSS
-st.markdown("""
-<style>
-    .main-header {
-        background: linear-gradient(45deg, #000428 0%, #004e92 100%);
-        padding: 2rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        text-align: center;
-        box-shadow: 0 0 20px rgba(0, 78, 146, 0.3);
-        border: 1px solid rgba(0, 78, 146, 0.5);
-        backdrop-filter: blur(10px);
-    }
-    
-    .metrics-container {
-        background: rgba(0, 0, 0, 0.7);
-        border: 1px solid rgba(0, 78, 146, 0.5);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        backdrop-filter: blur(5px);
-    }
-    
-    .alert-danger {
-        background: linear-gradient(45deg, #ff416c, #ff4b2b);
-        color: white;
-        padding: 1rem;
-        border-radius: 12px;
-        margin: 1rem 0;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(255, 65, 108, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0); }
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# HEADER
-st.markdown("""
-<div class="main-header">
-    <h1 style="color: white;">🏥 Dashboard HSE - HMRH</h1>
-    <p style="color: #88ccff;">Sistema de Monitorização de Saúde, Segurança e Ambiente</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Sidebar
-with st.sidebar:
-    st.markdown("## 🎯 Navigation")
-    page = st.selectbox(
-        "Select Page:",
-        ["Dashboard", "Analytics", "Reports"]
+# Add download button
+if st.sidebar.button("📥 Download Excel"):
+    excel_bytes = gerar_excel(df)
+    st.sidebar.download_button(
+        label="📥 Download Report",
+        data=excel_bytes,
+        file_name=f"hse_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-# Add download button in the sidebar
-with st.sidebar:
-    if st.button("📥 Download Excel Report"):
-        df = gerar_dados_demo()  # Get your data
-        excel_bytes = gerar_excel(df)
-        st.download_button(
-            label="📥 Download Excel",
-            data=excel_bytes,
-            file_name=f"hse_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-# Main Content
-if page == "Dashboard":
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("Safety Index", "98%", "2%")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("Incidents", "5", "-2")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("Training Hours", "240", "15")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Alert Example
-    st.markdown(
-        '<div class="alert-danger">⚠️ Alert: 2 new safety incidents reported</div>',
-        unsafe_allow_html=True
-    )
-
-# Footer
-st.markdown("---")
-st.markdown("""
-<div style="text-align: center; color: #666;">
-    <p>Dashboard HSE - HMRH | Version 2.0</p>
-    <p>© 2024 Hendrik da Silva</p>
-</div>
-""", unsafe_allow_html=True)
+# Display data
+st.title("🏥 Dashboard HSE - HMRH")
+st.dataframe(df)
